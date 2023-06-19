@@ -14,3 +14,6 @@ def append_job_data(data):
     df = pd.DataFrame.from_dict(data)
     output_path='job_application_status.csv'
     df.to_csv('job_application_status.csv', mode='a', header=not os.path.exists(output_path))
+
+def trim_mail_content(content,n_chars):
+    return content[:n_chars]

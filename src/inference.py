@@ -6,7 +6,7 @@ import openai
 from ratelimit import limits, RateLimitException, sleep_and_retry
 from config import MAX_CALLS_PER_MINUTE,ONE_MINUTE
 from tenacity import retry,wait_exponential,wait_random_exponential
-
+from utils import trim_mail_content
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
@@ -28,7 +28,8 @@ class GPTInference(LLMInference):
         self.temperature = temperature
 
     @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
-    def infer(self,prompt):
+    def infer(self,mail_content):
+        prompt = generate_prompt(mail_content)
         messages = [{"role": "user", "content": prompt}]
         try:
             response = openai.ChatCompletion.create(
@@ -38,7 +39,7 @@ class GPTInference(LLMInference):
             )
             return response.choices[0].message["content"] 
         except openai.error.OpenAIError as e:
-            print("Some error happened here.",e)
+            print("Some error happened here in the mail:",mail_content["title"],e)
             raise e
         
     
@@ -57,7 +58,8 @@ class FalconInference(LLMInference):
             device_map="auto",
         )
     
-    def infer(self,prompt):
+    def infer(self,mail_content):
+        prompt = generate_prompt(mail_content)
         sequences = self.pipeline(
             prompt,
             max_length=200,
@@ -79,13 +81,12 @@ def infer_mail(mail_content,type="falcon"):
         inferenceCls = GPTInference()
     else:
         raise NotImplementedError
-    prompt = generate_prompt(mail_content)
-    return inferenceCls.infer(prompt)
+    return inferenceCls.infer(mail_content)
     
 def generate_prompt(mail_content):
     prompt = f"""
     Identify the following items from the mail content: 
-    - Identify Whether this mail is related to job application. Answer this in boolean (True or False). Differentiate between job listing and job application.
+    - Identify Whether this mail is related to job application. Answer this in boolean (True or False).
     - Job Position
     - Company to which applied
     - Status of the job application
@@ -102,6 +103,6 @@ def generate_prompt(mail_content):
 
     mail content: '''{str(mail_content)}'''
     """
-
+    mail_content = trim_mail_content(mail_content, 4*3700) # limit token size for openai gpt api to 4097 Tokens (4 chars=1token)
     # Format the status value as Applied or Rejected.
     return prompt

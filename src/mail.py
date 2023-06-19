@@ -34,6 +34,7 @@ def check_and_deduplicate_read_mails(message_ids):
     with open(file_path,'r') as f:
         data = f.read()
         added_message_ids = data.split(",")
+        f.close()
         # f.seek(0)
         # f.write(",".join(list(set(message_ids+added_message_ids))))
         # f.truncate()
@@ -55,9 +56,9 @@ def fetch_mails(pageToken=None):
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
         if pageToken is None:
-            messages = service.users().messages().list(userId='me', maxResults=500).execute()
+            messages = service.users().messages().list(userId='me', maxResults=10).execute()
         else:
-            messages = service.users().messages().list(userId='me', maxResults=500,pageToken=pageToken).execute()
+            messages = service.users().messages().list(userId='me', maxResults=10,pageToken=pageToken).execute()
 
         message_ids = []
         for message in messages.get('messages',[]):
@@ -95,6 +96,17 @@ def fetch_mails(pageToken=None):
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
         print(f'An error occurred: {error}')
+
+
+def update_labels(label_id,message_ids):
+    SCOPES = [
+        "https://mail.google.com/",
+        "https://www.googleapis.com/auth/gmail.modify"
+    ]
+    creds = generate_access_token(SCOPES,"credentials.json")
+    # Call the Gmail API
+    service = build('gmail', 'v1', credentials=creds)
+    service.users().messages().batchModify(userId='me',ids=message_ids,addLabelIds=[label_id]).execute()
 
 if __name__ == '__main__':
     fetch_mails()
