@@ -2,3 +2,7 @@ credentials.json
 token.json
 test.json
 messageIds.txt
+job_application_status.csv
+mail_dummy.json
+openai-dummy.json
+src/__pycache__/*

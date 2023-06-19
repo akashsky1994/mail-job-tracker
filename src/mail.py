@@ -1,6 +1,8 @@
 import os
 import base64
 import json
+import re
+import datetime
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -29,14 +31,19 @@ def generate_access_token(SCOPES,credential_file="credentials.json"):
 
 def check_and_deduplicate_read_mails(message_ids):
     file_path = 'messageIds.txt'
-    # if os.path.exists(file_path) is not True: TODO create file
-    with open(file_path,'r+') as f:
+    with open(file_path,'r') as f:
         data = f.read()
         added_message_ids = data.split(",")
-        f.seek(0)
-        f.write(",".join(list(set(message_ids+added_message_ids))))
-        f.truncate()
+        # f.seek(0)
+        # f.write(",".join(list(set(message_ids+added_message_ids))))
+        # f.truncate()
     return [msgId for msgId in message_ids if msgId not in added_message_ids]
+
+def write_message_ids(message_ids):
+    file_path = 'messageIds.txt'
+    with open(file_path,'a') as f:
+        f.write(",".join(message_ids))
+        f.close()
 
 def fetch_mails(pageToken=None):
     try:
@@ -48,9 +55,9 @@ def fetch_mails(pageToken=None):
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
         if pageToken is None:
-            messages = service.users().messages().list(userId='me', maxResults=100).execute()
+            messages = service.users().messages().list(userId='me', maxResults=500).execute()
         else:
-            messages = service.users().messages().list(userId='me', maxResults=100,pageToken=pageToken).execute()
+            messages = service.users().messages().list(userId='me', maxResults=500,pageToken=pageToken).execute()
 
         message_ids = []
         for message in messages.get('messages',[]):
@@ -75,11 +82,15 @@ def fetch_mails(pageToken=None):
 
                 # Convert the email body to a string
                 text = body.decode('utf-8')
-                mail_contents.append(text)
+                title = re.sub(r'[^A-Za-z0-9 ]+', '', message.get('snippet',''))
+                if message.get('internalDate'):
+                    date = datetime.datetime.fromtimestamp(int(message.get('internalDate')) / 1e3).strftime("%c")
+                mail_contents.append({"title":title,"mail_body":text,"date":date})
+                
         
         pageToken = messages.get('nextPageToken')
 
-        return mail_contents,pageToken
+        return mail_contents,message_ids
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
