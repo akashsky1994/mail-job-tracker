@@ -1,5 +1,5 @@
-from services.mail import fetch_mails
-from services.inference import infer_mail
+from mail import fetch_mails
+from inference import infer_mail
 from utils import append_job_data
 
 def main():
