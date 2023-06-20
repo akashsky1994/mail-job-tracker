@@ -5,8 +5,9 @@ import torch
 import openai
 from ratelimit import limits, RateLimitException, sleep_and_retry
 from config import MAX_CALLS_PER_MINUTE,ONE_MINUTE
-from tenacity import retry,wait_exponential,wait_random_exponential
+from tenacity import retry,wait_exponential,wait_random_exponential,before_sleep_log,stop_after_attempt
 from utils import trim_mail_content
+import logging
 from logger import logger
 
 openai.api_key = os.environ['OPENAI_API_KEY']
@@ -28,7 +29,10 @@ class GPTInference(LLMInference):
         self.model = model
         self.temperature = temperature
 
-    @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(reraise=True,
+           stop=stop_after_attempt(5),
+           wait=wait_exponential(multiplier=1, min=4, max=10),
+           before_sleep=before_sleep_log(logger, logging.INFO))
     def infer(self,mail_content):
         prompt = generate_prompt(mail_content)
         messages = [{"role": "user", "content": prompt}]

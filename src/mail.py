@@ -44,10 +44,11 @@ def check_and_deduplicate_read_mails(message_ids):
     return [msgId for msgId in message_ids if msgId not in added_message_ids]
 
 def write_message_ids(message_ids):
-    file_path = 'messageIds.txt'
-    with open(file_path,'a') as f:
-        f.write(",".join(message_ids))
-        f.close()
+    if len(message_ids)>0:
+        file_path = 'messageIds.txt'
+        with open(file_path,'a') as f:
+            f.write(",".join(message_ids))
+            f.close()
 
 def fetch_mails(pageToken=None, nResults=100):
     
@@ -101,7 +102,7 @@ def fetch_mails(pageToken=None, nResults=100):
                     if message.get('internalDate'):
                         date = datetime.datetime.fromtimestamp(int(message.get('internalDate')) / 1e3).strftime("%c")
                     
-                    mail_contents.append({"title":title,"mail_body":text,"date":date})
+                    mail_contents.append({"message_id":message_id,"title":title,"mail_body":text,"date":date})
                     
             
             pageToken = messages.get('nextPageToken')
