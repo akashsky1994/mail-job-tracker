@@ -7,6 +7,7 @@ from ratelimit import limits, RateLimitException, sleep_and_retry
 from config import MAX_CALLS_PER_MINUTE,ONE_MINUTE
 from tenacity import retry,wait_exponential,wait_random_exponential
 from utils import trim_mail_content
+from logger import logger
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
@@ -39,10 +40,11 @@ class GPTInference(LLMInference):
             )
             return response.choices[0].message["content"] 
         except openai.error.OpenAIError as e:
+            logger.error("Some error happened here in the mail:",mail_content["title"],e)
             if str(e).contains("Please reduce the length of the messages"):
-                print(mail_content)
-            print("Some error happened here in the mail:",mail_content["title"],e)
-            raise e
+                logger.info(mail_content)
+            else:
+                raise e
         
     
 

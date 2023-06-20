@@ -10,6 +10,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from config import CHAR_LIMIT,JOB_LABEL_ID,FILTER_MAIL
+from logger import logger
 
 def generate_access_token(SCOPES,credential_file="credentials.json",token_file="token.json"):
     creds = None
@@ -75,7 +76,6 @@ def fetch_mails(pageToken=None, nResults=100):
             for message_id in message_ids:
                 # Get the contents of the email
                 message = service.users().messages().get(userId='me', id=message_id).execute()
-                # print(json.dumps(message,indent=4))
                 
                 # Decode the email body
                 msg_content = message.get('payload',{}).get('body',{}).get('data')
@@ -105,29 +105,34 @@ def fetch_mails(pageToken=None, nResults=100):
                     
             
             pageToken = messages.get('nextPageToken')
+            logger.info(pageToken)
             pages-=1
 
         return mail_contents,message_ids
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
-        print(f'An error occurred: {error}')
+        logger.critical(f'An error occurred: {error}')
 
 
 def update_labels(label_id,message_ids):
-    if len(message_ids)>0:
-        SCOPES = [
-            "https://mail.google.com/",
-            "https://www.googleapis.com/auth/gmail.modify"
-        ]
-        creds = generate_access_token(SCOPES,"credentials.json","label_update_token.json")
-        # Call the Gmail API
-        service = build('gmail', 'v1', credentials=creds)
-        body = {
-            "ids":message_ids,
-            "addLabelIds":[label_id]
-        }
-        service.users().messages().batchModify(userId='me',body=body).execute()
+    try:
+        if len(message_ids)>0:
+            SCOPES = [
+                "https://mail.google.com/",
+                "https://www.googleapis.com/auth/gmail.modify"
+            ]
+            creds = generate_access_token(SCOPES,"credentials.json","label_update_token.json")
+            # Call the Gmail API
+            service = build('gmail', 'v1', credentials=creds)
+            body = {
+                "ids":message_ids,
+                "addLabelIds":[label_id]
+            }
+            service.users().messages().batchModify(userId='me',body=body).execute()
+    except Exception as e:
+        logger.error(e)
+
 
 if __name__ == '__main__':
     update_labels(JOB_LABEL_ID,["188d7a15fb5dada0","188d792ad04cae1e","188d78906bdbbeb9","188d78905bbdb847","188d77a3b09bce2e","188d77460a795d8a"])

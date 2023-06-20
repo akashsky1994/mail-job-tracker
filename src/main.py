@@ -4,6 +4,7 @@ from utils import append_job_data
 import json
 from config import JOB_LABEL_ID
 import argparse
+from logger import logger
 
 def main(args):
     mails,message_ids = fetch_mails(nResults=args.mails)
@@ -24,7 +25,7 @@ def main(args):
                 
 
             inferred_json_data = infer_mail(mail_payload,type=args.inference_type)
-            print(inferred_json_data)
+            
             inferred_data = json.loads(inferred_json_data)
             
             if inferred_data.get("is_job_application"):
@@ -33,8 +34,8 @@ def main(args):
             processed_message_ids.append(message_ids[i])
 
         except Exception as e:
-            print(e)
-            print(inferred_json_data)
+            logger.error(e)
+            logger.info(inferred_json_data)
 
     return
 

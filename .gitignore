@@ -8,3 +8,4 @@ openai-dummy.json
 src/__pycache__/*
 label_update_token.json
 labels.json
+job-tracker.log
