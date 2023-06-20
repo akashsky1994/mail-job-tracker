@@ -3,9 +3,10 @@ from inference import infer_mail
 from utils import append_job_data
 import json
 from config import JOB_LABEL_ID
+import argparse
 
-def main():
-    mails,message_ids = fetch_mails(nResults=500)
+def main(nResults):
+    mails,message_ids = fetch_mails(nResults=nResults)
     
     processed_message_ids = []
     job_application_msg_ids = []
@@ -36,4 +37,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mails", type=int,default=100)
+    args = parser.parse_args()
+    main(args.mails)
