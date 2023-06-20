@@ -2,18 +2,17 @@ import os
 import csv
 import pandas as pd
 
-def append_job_data_archived(data):
+def append_job_data_archived(data, file_path='job_application_status.csv'):
     headers = data[0].keys()
-    with open('job_application_status.csv', 'a', newline='\n') as f:
+    with open(file_path, 'a', newline='\n') as f:
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
         writer.writerows(data)
     
 # Using Pandas    
-def append_job_data(data):
+def append_job_data(data, file_path='job_application_status.csv'):
     df = pd.DataFrame.from_dict(data)
-    output_path='job_application_status.csv'
-    df.to_csv('job_application_status.csv', mode='a', header=not os.path.exists(output_path))
+    df.to_csv(file_path, mode='a', header=not os.path.exists(file_path),index=False)
 
 def trim_mail_content(content,n_chars):
     # count = 0

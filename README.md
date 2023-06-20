@@ -14,7 +14,7 @@ Falcon-7B : This smaller version of falcon-40b also requires around 20GB memory.
 
 ### How to run
 ```
-python src/main.py --mails 1
+python src/main.py --mails 10 --output $HOME/Documents/SyncedDocuments/job_application_status.csv
 ```
 mails argument implies how many mails do you want to infer and analyse
 

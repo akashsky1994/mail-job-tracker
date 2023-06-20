@@ -39,6 +39,8 @@ class GPTInference(LLMInference):
             )
             return response.choices[0].message["content"] 
         except openai.error.OpenAIError as e:
+            if str(e).contains("Please reduce the length of the messages"):
+                print(mail_content)
             print("Some error happened here in the mail:",mail_content["title"],e)
             raise e
         
@@ -103,7 +105,7 @@ def generate_prompt(mail_content):
 
     mail content: '''{str(mail_content)}'''
     """
-    mail_content = trim_mail_content(mail_content, 4*3000) # limit token size for openai gpt api to 4097 Tokens (4 chars=1token)
+    mail_content = trim_mail_content(mail_content, 4*2000) # limit token size for openai gpt api to 4097 Tokens (4 chars=1token)
     
     # Format the status value as Applied or Rejected.
     return prompt
