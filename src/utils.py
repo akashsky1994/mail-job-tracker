@@ -16,4 +16,12 @@ def append_job_data(data):
     df.to_csv('job_application_status.csv', mode='a', header=not os.path.exists(output_path))
 
 def trim_mail_content(content,n_chars):
-    return content[:n_chars]
+    # count = 0
+    # for i,c in enumerate(content['mail_body']):
+    #     if not c.isspace():
+    #         count+=1
+    #     if count>n_chars:
+    #         content['mail_body'] = content['mail_body'][:i]
+    if len(content['mail_body'])>n_chars:
+        content['mail_body'] = content['mail_body'][:n_chars]
+    return content

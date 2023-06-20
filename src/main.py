@@ -5,8 +5,10 @@ import json
 from config import JOB_LABEL_ID
 
 def main():
-    mails,message_ids = fetch_mails()
+    mails,message_ids = fetch_mails(nResults=500)
+    
     processed_message_ids = []
+    job_application_msg_ids = []
     data = []
     for i,mail_payload in enumerate(mails):
         try:
@@ -16,6 +18,7 @@ def main():
             
             if inferred_data.get("is_job_application"):
                 data.append(inferred_data)
+                job_application_msg_ids.append(message_ids[i])
             processed_message_ids.append(message_ids[i])
         except Exception as e:
             print(e)
@@ -27,7 +30,7 @@ def main():
     
     write_message_ids(processed_message_ids)
     
-    update_labels(JOB_LABEL_ID,processed_message_ids)
+    update_labels(JOB_LABEL_ID,job_application_msg_ids)
     return
 
 

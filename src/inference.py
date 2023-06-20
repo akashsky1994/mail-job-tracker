@@ -103,6 +103,7 @@ def generate_prompt(mail_content):
 
     mail content: '''{str(mail_content)}'''
     """
-    mail_content = trim_mail_content(mail_content, 4*3700) # limit token size for openai gpt api to 4097 Tokens (4 chars=1token)
+    mail_content = trim_mail_content(mail_content, 4*3000) # limit token size for openai gpt api to 4097 Tokens (4 chars=1token)
+    
     # Format the status value as Applied or Rejected.
     return prompt

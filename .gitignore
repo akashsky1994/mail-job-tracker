@@ -6,3 +6,5 @@ job_application_status.csv
 mail_dummy.json
 openai-dummy.json
 src/__pycache__/*
+label_update_token.json
+labels.json
