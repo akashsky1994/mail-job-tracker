@@ -3,8 +3,8 @@ from crontab import CronTab
 
 def setup_cron():
     cron = CronTab(user=True)
-    job = cron.new(command='python $HOME/dev/mail-job-tracker/src/main.py --mails 1000 --output $HOME/Documents/SyncedDocuments/job_application_status.csv') 
-    job.hour.every(12)
+    job = cron.new(command='cd $HOME/dev/mail-job-tracker && poetry run python src/main.py --mails 100 --output $HOME/Documents/SyncedDocuments/job_application_status.csv') 
+    job.hour.every(1)
     cron.write()
 
 
