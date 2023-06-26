@@ -44,7 +44,7 @@ class GPTInference(LLMInference):
             )
             return response.choices[0].message["content"] 
         except openai.error.OpenAIError as e:
-            logger.error("Some error happened here in the mail:",mail_content["title"],e)
+            logger.error("Some error happened here in the mail: %s",mail_content["title"], exc_info=e)
             if str(e).contains("Please reduce the length of the messages"):
                 logger.info(mail_content)
             else:

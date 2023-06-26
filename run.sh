@@ -1,0 +1,1 @@
+cd $HOME/dev/mail-job-tracker && poetry run python src/main.py --mails 100 --output $HOME/Documents/SyncedDocuments/job_application_status.csv

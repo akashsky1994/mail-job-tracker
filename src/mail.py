@@ -5,6 +5,7 @@ import re
 import datetime
 import math
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -12,7 +13,7 @@ from googleapiclient.errors import HttpError
 from config import CHAR_LIMIT,JOB_LABEL_ID,FILTER_MAIL
 from logger import logger
 
-def generate_access_token(SCOPES,credential_file="credentials.json",token_file="token.json"):
+def get_access_token(SCOPES,credential_file="credentials.json",token_file="token.json"):
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -22,15 +23,23 @@ def generate_access_token(SCOPES,credential_file="credentials.json",token_file="
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except RefreshError as e: 
+                creds = generate_access_token(token_file,credential_file,SCOPES)
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(credential_file, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open(token_file, 'w') as token:
-            token.write(creds.to_json())
+            creds = generate_access_token(token_file,credential_file,SCOPES)    
     
     return creds
+
+def generate_access_token(token_file,credential_file,SCOPES):
+    flow = InstalledAppFlow.from_client_secrets_file(credential_file, SCOPES)
+    creds = flow.run_local_server(port=0)
+    # Save the credentials for the next run
+    with open(token_file, 'w') as token:
+        token.write(creds.to_json())
+    return creds
+
 
 def check_and_deduplicate_read_mails(message_ids):
     file_path = 'messageIds.txt'
@@ -56,7 +65,7 @@ def fetch_mails(pageToken=None, nResults=100):
         mail_contents = []
         SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
-        creds = generate_access_token(SCOPES,"credentials.json")
+        creds = get_access_token(SCOPES,"credentials.json")
 
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
@@ -123,7 +132,7 @@ def update_labels(label_id,message_ids):
                 "https://mail.google.com/",
                 "https://www.googleapis.com/auth/gmail.modify"
             ]
-            creds = generate_access_token(SCOPES,"credentials.json","label_update_token.json")
+            creds = get_access_token(SCOPES,"credentials.json","label_update_token.json")
             # Call the Gmail API
             service = build('gmail', 'v1', credentials=creds)
             body = {

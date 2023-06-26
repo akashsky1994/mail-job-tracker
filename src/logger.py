@@ -9,8 +9,9 @@ def create_logger():
     logging.basicConfig(filename='job-tracker.log',
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.DEBUG
+                    )
     logger = logging.getLogger('mail-job-tracker')
     return logger
 
